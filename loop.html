@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SatDish demo linked</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+            .az-el-buttons {
+                font-size: 1em;
+                display: flex;
+                justify-content: center;
+            }
+            .buttons {
+                font-size: 4em;
+                display: flex;
+                justify-content: center;
+            }
+            .button, .value {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
+            .azimuth, .elevation {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
+            .button {
+                cursor: pointer;
+                user-select: none;
+            }
+            .minus {
+                color: red;
+            }
+            .Estop {
+                color: red;
+            }
+            .plus {
+                color: green;
+            }
+            .value {
+                min-width: 2em;
+            }
+            .azimuth {
+                min-width: 2em;
+                color: blue;
+            }
+            .elevation {
+                min-width: 2em;
+                color: blue;
+            }
+            .state {
+                font-size: 2em;
+            }
+            .AzimuthInput {
+                line-height: 1;
+                font-size: 12pt;
+            }
+            .GotoAzimuthInput {
+                line-height: 1;
+                font-size: 12pt;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="buttons">
+            <div class="minus button">-</div>
+            <div class="value">?</div>
+            <div class="plus button">+</div>
+        </div>
+
+        <div class="state">
+            <span class="users">SERVER NOT</span> online
+        </div>
+
+        <div>
+           <input type="text" class="GotoAzimuthInput">
+            <div class="gotoAzimuth button">point to azimuth: </div>
+        </div>
+
+         <div class="az-el-buttons">
+            <input type="text" class="AzimuthInput">
+            <div class="left button">Left - </div>
+            <div class="azimuth">?</div>
+            <div class="right button">Right + </div>
+        </div>
+        <div>
+            <div class="Estop button">STOP</div>
+        </div>
+         <div class="az-el-buttons">
+            <div class="up button">Up</div>
+            <div class="elevation">?</div>
+            <div class="down button">Down</div>
+        </div>
+        <script>
+            var left = document.querySelector('.left'),
+                right = document.querySelector('.right'),
+                up = document.querySelector('.up'),
+                down = document.querySelector('.down'),
+                minus = document.querySelector('.minus'),
+                plus = document.querySelector('.plus'),
+                value = document.querySelector('.value'),
+                users = document.querySelector('.users'),
+                azimuth = document.querySelector('.azimuth'),
+                azimuthInput= document.querySelector('.AzimuthInput'),
+                gotoAzimuth = document.querySelector('.gotoAzimuth'),
+                gotoAzimuthInput= document.querySelector('.GotoAzimuthInput'),
+                elevation = document.querySelector('.elevation'),
+                Estop = document.querySelector('.Estop'),
+                //websocket = new WebSocket("ws://172.16.2.135:6789/");
+                // websocket = new WebSocket("ws://192.168.0.48:6789/");
+                 websocket = new WebSocket("ws:10.2.2.60:6789/");
+
+            left.onclick = function (event) {
+                //alert (azimuthInput.value)
+                websocket.send(JSON.stringify({action: 'left', degrees: azimuthInput.value}));
+            }
+            right.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'right', degrees: azimuthInput.value}));
+            }
+            up.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'up',  degrees: azimuthInput.value}));
+            }
+            down.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'down',  degrees: azimuthInput.value}));
+            }
+            minus.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'minus'}));
+            }
+            plus.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'plus'}));
+            }
+            Estop.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'Estop'}));
+            }
+            azimuth.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'azimuth'}));
+            }
+            gotoAzimuth.onclick = function (event) {
+                websocket.send(JSON.stringify({action: 'gotoAzimuth', intendedAzimuth: gotoAzimuthInput.value}));
+            }
+            websocket.onmessage = function (event) {
+                data = JSON.parse(event.data);
+                switch (data.type) {
+
+                    case 'azimuth':
+                        azimuth.textContent = data.value;
+                        break;
+                    case 'elevation':
+                        elevation.textContent = data.value;
+                        break;
+                    case 'state':
+                        value.textContent = data.value;
+                        break;
+                    case 'users':
+                        users.textContent = (
+                            data.count.toString() + " user" +
+                            (data.count == 1 ? "" : "s"));
+                        break;
+                    default:
+                        console.error(
+                            "unsupported event", data);
+                }
+            };
+        </script>
+    </body>
+</html>
